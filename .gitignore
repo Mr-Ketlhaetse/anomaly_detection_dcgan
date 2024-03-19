@@ -128,6 +128,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Directories
+/data
+/Results
+/sampled
+.idea/
+
 # Spyder project settings
 .spyderproject
 .spyproject
