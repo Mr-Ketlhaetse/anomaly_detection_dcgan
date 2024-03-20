@@ -3,6 +3,7 @@ from PIL import Image
 from torchvision import transforms
 from torch.utils.data import Dataset
 
+
 class ImageDatasetLoader(Dataset):
     def __init__(self, folder_path, image_type='png', transform=None):
         """

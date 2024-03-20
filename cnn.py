@@ -5,6 +5,7 @@ import random
 import torch.nn as nn
 import pandas as pd
 
+
 class CNNTransferLearning(BaseEstimator):
     def __init__(self, dcgan_discriminator, num_classes, learning_rate=0.001):
         super(CNNTransferLearning, self).__init__()
@@ -55,7 +56,8 @@ class CNNTransferLearning(BaseEstimator):
 
         # Define the loss function and optimizer
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate if learning_rate is None else learning_rate)
+        optimizer = torch.optim.Adam(self.model.parameters(),
+                                     lr=self.learning_rate if learning_rate is None else learning_rate)
 
         # Train the model
         for epoch in range(10):
@@ -117,7 +119,8 @@ class CNNTransferLearning(BaseEstimator):
 
         # Define the loss function and optimizer
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate if learning_rate is None else learning_rate)
+        optimizer = torch.optim.Adam(self.model.parameters(),
+                                     lr=self.learning_rate if learning_rate is None else learning_rate)
 
         # Train the model
         for epoch in range(num_epochs):

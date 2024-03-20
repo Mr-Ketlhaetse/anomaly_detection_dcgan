@@ -51,7 +51,6 @@ class DCGAN:
         def forward(self, x):
             return self.main(x)
 
-
     class Discriminator(nn.Module):
         def __init__(self, nc, ndf):
             super(DCGAN.Discriminator, self).__init__()
@@ -75,20 +74,19 @@ class DCGAN:
                 x = torch.stack(x)
             return self.main(x)
 
-
     def train(self, num_epochs=100):
-        
+
         dataset = self.dataset
         dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=2)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Sigmoid Cross Entropy Loss
-        criterion = self.criterion #nn.BCEWithLogitsLoss()
+        criterion = self.criterion  # nn.BCEWithLogitsLoss()
 
         for epoch in range(num_epochs):
             for i, data in enumerate(dataloader, 0):
-            # for i, data in dataloader:
+                # for i, data in dataloader:
                 # Update Discriminator
                 self.netD.zero_grad()
                 # real_data = data[0] #.to(device)
@@ -132,32 +130,30 @@ class DCGAN:
                           % (epoch, num_epochs, i, len(dataloader),
                              errD_real.item() + errD_fake.item(), errG.item()))
 
-            # Save generated images for every epoch
-            image_dir = "./sampled/dcgan_images"
-            os.makedirs(image_dir, exist_ok=True)
-            fake = self.netG(torch.randn(64, self.nz, 1, 1, device=device))
-            vutils.save_image(fake.detach(), '{}/fake_samples_epoch_{}.png'.format(image_dir, epoch + 1), normalize=True)
-            
+                    # Save generated images for every 10 epochs
+                    image_dir = "./sampled/dcgan_images"
+                    os.makedirs(image_dir, exist_ok=True)
+                    fake = self.netG(torch.randn(64, self.nz, 1, 1, device=device))
+                    vutils.save_image(fake.detach(), '{}/fake_samples_epoch_{}.png'.format(image_dir, epoch + 1),
+                                      normalize=True)
 
         # Save the generator model
         torch.save(self.netD.state_dict(), 'dcgan_discriminator_weights.pth')
-        
-        # plot the loss graph for the generator and discriminator        
-        plt.figure(figsize=(5,5))
+
+        # plot the loss graph for the generator and discriminator
+        os.makedirs('./plots/dcgan', exist_ok=True)
+        plt.figure(figsize=(5, 5))
         plt.title("Generator and Discriminator Loss During Training")
-        plt.plot(self.losses['G'],label="G")
-        plt.plot(self.losses['D'],label="D")
+        plt.plot(self.losses['G'], label="G")
+        plt.plot(self.losses['D'], label="D")
         plt.xlabel("iterations")
         plt.ylabel("Loss")
         plt.legend()
         # Set y-axis limits here
         plt.ylim([-1, 2])  # Adjust as needed
-        plt.savefig('plots/dcgan/loss_graph.png')
+        plt.savefig('./plots/dcgan/loss_graph.png')
         plt.clf()
         pass
-
-
-
 
 # if __name__ == '__main__':
 
@@ -173,4 +169,3 @@ class DCGAN:
 #     dcgan = DCGAN(dataset=dataloader)
 #     dcgan.train()
 #     pass
-    

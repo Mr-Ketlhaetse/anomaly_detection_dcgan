@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 from sklearn.model_selection import learning_curve
 
+
 def false_alarm_rate(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     if cm.size == 1:
@@ -27,6 +28,7 @@ def false_alarm_rate(y_true, y_pred):
     far = fp / (fp + tn) if fp + tn > 0 else 0
     return far
 
+
 def false_negative_rate(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     if cm.size == 1:
@@ -35,6 +37,7 @@ def false_negative_rate(y_true, y_pred):
         tn, fp, fn, tp = cm.ravel()
     fnr = fn / (fn + tp) if fn + tp > 0 else 0
     return fnr
+
 
 def true_negative_rate(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
@@ -48,10 +51,10 @@ def true_negative_rate(y_true, y_pred):
 
 def main():
     # CTGAN hyperparameters
-    CTGAN_EPOCHS = 1
+    CTGAN_EPOCHS = 3
     CTGAN_SAMPLES = 1000
     ORIGINAL_SAMPLES = 5000
-    SYN_RATIO = 0.9
+    SYN_RATIO = 1.0
     SAMPLED_DATA_FILE = f"{SYN_RATIO}_sampled.csv"
 
     # GridSearchCv hyperparameters
@@ -61,11 +64,10 @@ def main():
     URL_ONLINE = 'https://www.kaggle.com/datasets/ekkykharismadhany/csecicids2018-cleaned/download?datasetVersionNumber=1'
     LOCAL_FOLDER = './data/clean/cleaned_ids2018_sampled.csv'
     original_data = pd.read_csv(LOCAL_FOLDER).iloc[:ORIGINAL_SAMPLES]
-    
+
     # Remove rows with null values
     original_data = remove_null_rows(original_data)
 
-    
     # Detect continuous and discrete features
     continuous_features, discrete_features = detect_features(original_data)
 
@@ -128,6 +130,7 @@ def main():
     dcgan_model.train()
 
     # Load pretrained DCGAN discriminator
+    print("Transfer learning using pretrained DCGAN discriminator")
     pretrained_dcgan_discriminator = DCGAN.Discriminator(img_channels, 64)
     pretrained_dcgan_discriminator.load_state_dict(torch.load('dcgan_discriminator_weights.pth'))
     pretrained_dcgan_discriminator.eval()
@@ -135,43 +138,43 @@ def main():
     # Initialize CNN model for transfer learning
     num_classes = len(real_target.unique())
     cnn_model = CNNTransferLearning(pretrained_dcgan_discriminator, num_classes, learning_rate=0.01)
-    
+
     # Define hyperparameters for grid search
     param_grid = {
         'learning_rate': [0.001, 0.01, 0.1]
     }
 
     # Define the scoring metrics for the model
-    far_scorer = make_scorer(false_alarm_rate) # custom function to calculate the false alarm rate
-    fnr_scorer = make_scorer(false_negative_rate) # custom function to calculate the false negative rate (miss rate
-    tnr_scorer = make_scorer(true_negative_rate) # custom function to calculate the true negative rate
-    
+    far_scorer = make_scorer(false_alarm_rate)  # custom function to calculate the false alarm rate
+    fnr_scorer = make_scorer(false_negative_rate)  # custom function to calculate the false negative rate (miss rate
+    tnr_scorer = make_scorer(true_negative_rate)  # custom function to calculate the true negative rate
+
     scoring = {
-    'precision': make_scorer(precision_score, average='macro', zero_division=1),
-    'recall': make_scorer(recall_score, average='macro'),
-    'f1_score': make_scorer(f1_score, average='macro'),
-    'accuracy': make_scorer(accuracy_score),
-    'false_alarm_rate': far_scorer,
-    'false_negative_rate': fnr_scorer,
-    'true_negative_rate': tnr_scorer	
+        'precision': make_scorer(precision_score, average='macro', zero_division=1),
+        'recall': make_scorer(recall_score, average='macro'),
+        'f1_score': make_scorer(f1_score, average='macro'),
+        'accuracy': make_scorer(accuracy_score),
+        'false_alarm_rate': far_scorer,
+        'false_negative_rate': fnr_scorer,
+        'true_negative_rate': tnr_scorer
     }
 
     # Create GridSearchCV object
+    print("GridSearchCv instantiation and fitting")
     grid_search = GridSearchCV(cnn_model, param_grid, cv=CV, scoring=scoring, refit='f1_score', error_score='raise')
 
     # Fit GridSearchCV object to the data
     grid_search.fit(image_dataset, torch.tensor(real_target).long())
 
     # Print best parameters and best score
-    print("Best Parameters:", grid_search.best_params_) 
+    print("Best Parameters:", grid_search.best_params_)
     print("Best Score:", grid_search.best_score_)
 
     # Create a SummaryWriter object
     writer = SummaryWriter()
 
     # Preview scorer names
-    print(grid_search.cv_results_.keys())
-
+    print("GridSearchCV results keys:", grid_search.cv_results_.keys())
 
     # Print scores for all metrics
     for scorer_name in scoring.keys():
@@ -187,7 +190,8 @@ def main():
 
         # Generate learning curve
         train_sizes, train_scores, test_scores = learning_curve(
-            grid_search.best_estimator_, image_dataset, torch.tensor(real_target).long(), cv=CV, scoring=scorer_name, n_jobs=1)
+            grid_search.best_estimator_, image_dataset, torch.tensor(real_target).long(), cv=CV, scoring=scorer_name,
+            n_jobs=1)
 
         train_scores_mean = np.mean(train_scores, axis=1)
         train_scores_std = np.std(train_scores, axis=1)
@@ -201,9 +205,9 @@ def main():
         plt.grid()
 
         plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
-                            train_scores_mean + train_scores_std, alpha=0.1, color="r")
+                         train_scores_mean + train_scores_std, alpha=0.1, color="r")
         plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
-                            test_scores_mean + test_scores_std, alpha=0.1, color="g")
+                         test_scores_mean + test_scores_std, alpha=0.1, color="g")
         plt.plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training score")
         plt.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
 
@@ -212,8 +216,7 @@ def main():
         plt.savefig(f"plots/learning_curve_{scorer_name}.png")
         plt.clf()
 
-
-        #implement tensorboard
+        # implement tensorboard
         mean_score = np.mean(grid_search.cv_results_['mean_test_' + scorer_name])
         # include other charts for the other metrics in the tensorboard
         writer.add_scalar(f"{scorer_name.capitalize()} Score", mean_score)
@@ -222,10 +225,8 @@ def main():
         # writer.add_hparams(param_grid, {scorer_name: mean_score})
         # writer.add_graph(grid_search.best_estimator_, image_dataset)
 
-
-
     writer.close()
-    
+
 
 if __name__ == '__main__':
     main()

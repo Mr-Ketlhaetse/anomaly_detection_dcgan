@@ -133,6 +133,8 @@ venv.bak/
 /Results
 /sampled
 .idea/
+/plots
+dcgan_discriminator_weights.pth
 
 # Spyder project settings
 .spyderproject
