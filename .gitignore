@@ -135,6 +135,7 @@ venv.bak/
 .idea/
 /plots
 dcgan_discriminator_weights.pth
+cleaned_ids2018_sampled.csv
 
 # Spyder project settings
 .spyderproject
