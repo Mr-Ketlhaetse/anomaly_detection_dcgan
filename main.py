@@ -15,7 +15,7 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.metrics import make_scorer, precision_score, recall_score, f1_score, accuracy_score
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 from sklearn.model_selection import learning_curve
 
 
@@ -58,7 +58,7 @@ def main():
     SAMPLED_DATA_FILE = f"{SYN_RATIO}_sampled.csv"
 
     # DCGAN settings
-    dcgan_train = False  # Set to True to train DCGAN model
+    dcgan_train = True  # Set to True to train DCGAN model
     # Initialize DCGAN model
     latent_dim = 100
     img_channels = 3
@@ -70,7 +70,7 @@ def main():
     # Load original data
     URL_ONLINE = 'https://www.kaggle.com/datasets/ekkykharismadhany/csecicids2018-cleaned/download?datasetVersionNumber=1'
     LOCAL_FOLDER = './data/clean/cleaned_ids2018_sampled.csv'
-    original_data = pd.read_csv(LOCAL_FOLDER).iloc[:ORIGINAL_SAMPLES]
+    original_data = pd.read_csv(URL_ONLINE).iloc[:ORIGINAL_SAMPLES]
 
     # Remove rows with null values
     original_data = remove_null_rows(original_data)
@@ -175,7 +175,7 @@ def main():
     print("Best Score:", grid_search.best_score_)
 
     # Create a SummaryWriter object
-    writer = SummaryWriter()
+    # writer = SummaryWriter()
 
     # Preview scorer names
     print("GridSearchCV results keys:", grid_search.cv_results_.keys())
@@ -223,13 +223,13 @@ def main():
         # implement tensorboard
         mean_score = np.mean(grid_search.cv_results_['mean_test_' + scorer_name])
         # include other charts for the other metrics in the tensorboard
-        writer.add_scalar(f"{scorer_name.capitalize()} Score", mean_score)
-        writer.add_figure(f"{scorer_name.capitalize()} Score vs Parameter Combination", plt.figure())
-        writer.add_histogram(f"{scorer_name.capitalize()} Score", grid_search.cv_results_['mean_test_' + scorer_name])
+        # writer.add_scalar(f"{scorer_name.capitalize()} Score", mean_score)
+        # writer.add_figure(f"{scorer_name.capitalize()} Score vs Parameter Combination", plt.figure())
+        # writer.add_histogram(f"{scorer_name.capitalize()} Score", grid_search.cv_results_['mean_test_' + scorer_name])
         # writer.add_hparams(param_grid, {scorer_name: mean_score})
         # writer.add_graph(grid_search.best_estimator_, image_dataset)
 
-    writer.close()
+    # writer.close()
 
 
 if __name__ == '__main__':
