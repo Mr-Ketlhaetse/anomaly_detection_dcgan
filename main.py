@@ -17,6 +17,7 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 # from torch.utils.tensorboard import SummaryWriter
 from sklearn.model_selection import learning_curve
+import tempfile
 
 
 def false_alarm_rate(y_true, y_pred):
@@ -95,6 +96,7 @@ def main():
     num = num_row * num_col
 
     data = pd.read_csv(sampled_filepath)
+    os.remove(sampled_filepath)  # Remove the sampled data file after reading
     id = select_features_by_variation(data, variation_measure='var', num=num)
     data = data.iloc[:, id]
     norm_data = min_max_transform(data.values)
@@ -138,6 +140,7 @@ def main():
     pretrained_dcgan_discriminator = DCGAN.Discriminator(img_channels, 64)
     pretrained_dcgan_discriminator.load_state_dict(torch.load('dcgan_discriminator_weights.pth'))
     pretrained_dcgan_discriminator.eval()
+    os.remove('dcgan_discriminator_weights.pth')	# Remove the weights file after loading
 
     # Initialize CNN model for transfer learning
     num_classes = len(real_target.unique())
