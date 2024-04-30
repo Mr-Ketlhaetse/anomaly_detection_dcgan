@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 # from torch.utils.tensorboard import SummaryWriter
 from sklearn.model_selection import learning_curve
 import tempfile
+from config import Parameters as prm
 
 
 def false_alarm_rate(y_true, y_pred):
@@ -51,27 +52,12 @@ def true_negative_rate(y_true, y_pred):
 
 
 def main():
-    # CTGAN hyperparameters
-    CTGAN_EPOCHS = 3
-    CTGAN_SAMPLES = 1000
-    ORIGINAL_SAMPLES = 10000
-    SYN_RATIO = 1.0
-    SAMPLED_DATA_FILE = f"{SYN_RATIO}_sampled.csv"
-
-    # DCGAN settings
-    dcgan_train = True  # Set to True to train DCGAN model
-    # Initialize DCGAN model
-    latent_dim = 100
-    img_channels = 3
-    img_size = 64
-
-    # GridSearchCv hyperparameters
-    CV = 3
+    
 
     # Load original data
     URL_ONLINE = 'https://www.kaggle.com/datasets/ekkykharismadhany/csecicids2018-cleaned/download?datasetVersionNumber=1'
     LOCAL_FOLDER = './cleaned_ids2018_sampled.csv'
-    original_data = pd.read_csv(LOCAL_FOLDER).iloc[:ORIGINAL_SAMPLES]
+    original_data = pd.read_csv(LOCAL_FOLDER).iloc[:prm.ORIGINAL_SAMPLES]
 
     # Remove rows with null values
     original_data = remove_null_rows(original_data)
@@ -80,15 +66,15 @@ def main():
     continuous_features, discrete_features = detect_features(original_data)
 
     # Train CTGAN model
-    ctgan = CTGAN(epochs=CTGAN_EPOCHS)
+    ctgan = CTGAN(epochs=prm.CTGAN_EPOCHS)
     ctgan.fit(original_data, discrete_features)
 
     # Generate synthetic data
-    synthetic_data = ctgan.sample(CTGAN_SAMPLES)
+    synthetic_data = ctgan.sample(prm.CTGAN_SAMPLES)
     # print(synthetic_data.head(10))   
 
     # Combine real and synthetic data
-    sample_data, sampled_filepath = combine_datasets(original_data, synthetic_data, SYN_RATIO, SAMPLED_DATA_FILE)
+    sample_data, sampled_filepath = combine_datasets(original_data, synthetic_data, prm.SYN_RATIO, prm.SAMPLED_DATA_FILE)
 
     # Select features based on variation
     num_row = 26
@@ -130,14 +116,14 @@ def main():
     image_dataset = ImageDatasetLoader(folder_path, image_type='png', transform=transform)
 
     # Train DCGAN model
-    if dcgan_train:
-        dcgan_model = DCGAN(image_dataset, latent_dim, img_channels, img_size)
+    if prm.dcgan_train:
+        dcgan_model = DCGAN(image_dataset, prm.latent_dim, prm.img_channels, prm.img_size)
         # Train DCGAN model
         dcgan_model.train()
 
     # Load pretrained DCGAN discriminator
     print("Transfer learning using pretrained DCGAN discriminator")
-    pretrained_dcgan_discriminator = DCGAN.Discriminator(img_channels, 64)
+    pretrained_dcgan_discriminator = DCGAN.Discriminator(prm.img_channels, 64)
     pretrained_dcgan_discriminator.load_state_dict(torch.load('dcgan_discriminator_weights.pth'))
     pretrained_dcgan_discriminator.eval()
     os.remove('dcgan_discriminator_weights.pth')	# Remove the weights file after loading
@@ -168,7 +154,7 @@ def main():
 
     # Create GridSearchCV object
     print("GridSearchCv instantiation and fitting")
-    grid_search = GridSearchCV(cnn_model, param_grid, cv=CV, scoring=scoring, refit='f1_score', error_score='raise')
+    grid_search = GridSearchCV(cnn_model, param_grid, cv=prm.CV, scoring=scoring, refit='f1_score', error_score='raise')
 
     # Fit GridSearchCV object to the data
     grid_search.fit(image_dataset, torch.tensor(real_target).long())

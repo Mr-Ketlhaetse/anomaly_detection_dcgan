@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.utils as vutils
 import matplotlib.pyplot as plt
+from config import Parameters as prm
 
 
 class DCGAN:
@@ -74,7 +75,7 @@ class DCGAN:
                 x = torch.stack(x)
             return self.main(x)
 
-    def train(self, num_epochs=100):
+    def train(self, num_epochs=prm.dcgan_epochs):
 
         dataset = self.dataset
         dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=2)
