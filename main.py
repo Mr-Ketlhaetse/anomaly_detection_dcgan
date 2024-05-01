@@ -57,7 +57,7 @@ def main():
     # Load original data
     URL_ONLINE = 'https://www.kaggle.com/datasets/ekkykharismadhany/csecicids2018-cleaned/download?datasetVersionNumber=1'
     LOCAL_FOLDER = './cleaned_ids2018_sampled.csv'
-    original_data = pd.read_csv(LOCAL_FOLDER).iloc[:prm.ORIGINAL_SAMPLES]
+    original_data = pd.read_csv(LOCAL_FOLDER)#.iloc[:prm.ORIGINAL_SAMPLES]
 
     # Remove rows with null values
     original_data = remove_null_rows(original_data)
