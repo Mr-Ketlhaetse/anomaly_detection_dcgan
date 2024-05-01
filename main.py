@@ -141,84 +141,88 @@ def main():
     far_scorer = make_scorer(false_alarm_rate)  # custom function to calculate the false alarm rate
     fnr_scorer = make_scorer(false_negative_rate)  # custom function to calculate the false negative rate (miss rate
     tnr_scorer = make_scorer(true_negative_rate)  # custom function to calculate the true negative rate
+    
+    if prm.cross_validate:
+        scoring = {
+            'precision': make_scorer(precision_score, average='macro', zero_division=1),
+            'recall': make_scorer(recall_score, average='macro'),
+            'f1_score': make_scorer(f1_score, average='macro'),
+            'accuracy': make_scorer(accuracy_score),
+            'false_alarm_rate': far_scorer,
+            'false_negative_rate': fnr_scorer,
+            'true_negative_rate': tnr_scorer
+        }
 
-    scoring = {
-        'precision': make_scorer(precision_score, average='macro', zero_division=1),
-        'recall': make_scorer(recall_score, average='macro'),
-        'f1_score': make_scorer(f1_score, average='macro'),
-        'accuracy': make_scorer(accuracy_score),
-        'false_alarm_rate': far_scorer,
-        'false_negative_rate': fnr_scorer,
-        'true_negative_rate': tnr_scorer
-    }
+        # Create GridSearchCV object
+        print("GridSearchCv instantiation and fitting")
+        grid_search = GridSearchCV(cnn_model, param_grid, cv=prm.CV, scoring=scoring, refit='f1_score', error_score='raise')
 
-    # Create GridSearchCV object
-    print("GridSearchCv instantiation and fitting")
-    grid_search = GridSearchCV(cnn_model, param_grid, cv=prm.CV, scoring=scoring, refit='f1_score', error_score='raise')
+        # Fit GridSearchCV object to the data
+        grid_search.fit(image_dataset, torch.tensor(real_target).long())
 
-    # Fit GridSearchCV object to the data
-    grid_search.fit(image_dataset, torch.tensor(real_target).long())
+        # Print best parameters and best score
+        print("Best Parameters:", grid_search.best_params_)
+        print("Best Score:", grid_search.best_score_)
 
-    # Print best parameters and best score
-    print("Best Parameters:", grid_search.best_params_)
-    print("Best Score:", grid_search.best_score_)
+        # Create a SummaryWriter object
+        # writer = SummaryWriter()
 
-    # Create a SummaryWriter object
-    # writer = SummaryWriter()
+        # Preview scorer names
+        print("GridSearchCV results keys:", grid_search.cv_results_.keys())
 
-    # Preview scorer names
-    print("GridSearchCV results keys:", grid_search.cv_results_.keys())
+        # Print scores for all metrics
+        for scorer_name in scoring.keys():
+            print(f"{scorer_name.capitalize()} Score: {grid_search.cv_results_['mean_test_' + scorer_name]}")
+            plt.plot(grid_search.cv_results_['mean_test_' + scorer_name])
+            plt.xlabel('Parameter Combination')
+            plt.ylabel(f"{scorer_name.capitalize()} Score")
+            plt.title(f"{scorer_name.capitalize()} Score vs Parameter Combination")
+            # Set y-axis limits here
+            plt.ylim([0, 1])  # Adjust as needed
+            plt.savefig(f"plots/{scorer_name}.png")
+            plt.clf()
 
-    # Print scores for all metrics
-    for scorer_name in scoring.keys():
-        print(f"{scorer_name.capitalize()} Score: {grid_search.cv_results_['mean_test_' + scorer_name]}")
-        plt.plot(grid_search.cv_results_['mean_test_' + scorer_name])
-        plt.xlabel('Parameter Combination')
-        plt.ylabel(f"{scorer_name.capitalize()} Score")
-        plt.title(f"{scorer_name.capitalize()} Score vs Parameter Combination")
-        # Set y-axis limits here
-        plt.ylim([0, 1])  # Adjust as needed
-        plt.savefig(f"plots/{scorer_name}.png")
-        plt.clf()
+            # Generate learning curve
+            train_sizes, train_scores, test_scores = learning_curve(
+                grid_search.best_estimator_, image_dataset, torch.tensor(real_target).long(), cv=CV, scoring=scorer_name,
+                n_jobs=1)
 
-        # Generate learning curve
-        train_sizes, train_scores, test_scores = learning_curve(
-            grid_search.best_estimator_, image_dataset, torch.tensor(real_target).long(), cv=CV, scoring=scorer_name,
-            n_jobs=1)
+            train_scores_mean = np.mean(train_scores, axis=1)
+            train_scores_std = np.std(train_scores, axis=1)
+            test_scores_mean = np.mean(test_scores, axis=1)
+            test_scores_std = np.std(test_scores, axis=1)
 
-        train_scores_mean = np.mean(train_scores, axis=1)
-        train_scores_std = np.std(train_scores, axis=1)
-        test_scores_mean = np.mean(test_scores, axis=1)
-        test_scores_std = np.std(test_scores, axis=1)
+            plt.figure()
+            plt.title(f"Learning Curve ({scorer_name.capitalize()} Score)")
+            plt.xlabel("Training examples")
+            plt.ylabel("Score")
+            plt.grid()
 
-        plt.figure()
-        plt.title(f"Learning Curve ({scorer_name.capitalize()} Score)")
-        plt.xlabel("Training examples")
-        plt.ylabel("Score")
-        plt.grid()
+            plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+                            train_scores_mean + train_scores_std, alpha=0.1, color="r")
+            plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+                            test_scores_mean + test_scores_std, alpha=0.1, color="g")
+            plt.plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training score")
+            plt.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
 
-        plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
-                         train_scores_mean + train_scores_std, alpha=0.1, color="r")
-        plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
-                         test_scores_mean + test_scores_std, alpha=0.1, color="g")
-        plt.plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training score")
-        plt.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
+            plt.legend(loc="best")
 
-        plt.legend(loc="best")
+            plt.savefig(f"plots/learning_curve_{scorer_name}.png")
+            plt.clf()
 
-        plt.savefig(f"plots/learning_curve_{scorer_name}.png")
-        plt.clf()
+            # implement tensorboard
+            mean_score = np.mean(grid_search.cv_results_['mean_test_' + scorer_name])
+            # include other charts for the other metrics in the tensorboard
+            # writer.add_scalar(f"{scorer_name.capitalize()} Score", mean_score)
+            # writer.add_figure(f"{scorer_name.capitalize()} Score vs Parameter Combination", plt.figure())
+            # writer.add_histogram(f"{scorer_name.capitalize()} Score", grid_search.cv_results_['mean_test_' + scorer_name])
+            # writer.add_hparams(param_grid, {scorer_name: mean_score})
+            # writer.add_graph(grid_search.best_estimator_, image_dataset)
 
-        # implement tensorboard
-        mean_score = np.mean(grid_search.cv_results_['mean_test_' + scorer_name])
-        # include other charts for the other metrics in the tensorboard
-        # writer.add_scalar(f"{scorer_name.capitalize()} Score", mean_score)
-        # writer.add_figure(f"{scorer_name.capitalize()} Score vs Parameter Combination", plt.figure())
-        # writer.add_histogram(f"{scorer_name.capitalize()} Score", grid_search.cv_results_['mean_test_' + scorer_name])
-        # writer.add_hparams(param_grid, {scorer_name: mean_score})
-        # writer.add_graph(grid_search.best_estimator_, image_dataset)
+        # writer.close()
 
-    # writer.close()
+        else:
+            cnn_model.fit(image_dataset, torch.tensor(real_target).long())
 
 
 if __name__ == '__main__':

@@ -14,5 +14,7 @@ class Parameters:
     img_size = 64
     dcgan_epochs = 5
     dcgan_batch_size = 64
+
     # GridSearchCv hyperparameters
     CV = 2
+    cross_validate = False
