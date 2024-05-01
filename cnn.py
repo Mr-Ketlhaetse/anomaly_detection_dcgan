@@ -36,6 +36,7 @@ class CNNTransferLearning(BaseEstimator):
     def forward(self, x):
         x = self.dcgan_discriminator(x)
         x = x.view(x.size(0), -1)
+        x = self.linear_layer(x)  # Add a linear layer to match the dimensions
         x = self.classifier(x)
         return x
 
