@@ -7,7 +7,7 @@ import os
 import pandas as pd
 import shutil
 import time
-import _pickle as cp
+import pickle as cp
 import sys
 from astropy.stats import median_absolute_deviation
 
