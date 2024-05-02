@@ -222,7 +222,19 @@ def main():
         # writer.close()
 
         else:
-            cnn_model.fit(image_dataset, torch.tensor(real_target).long())
+            history = cnn_model.fit(image_dataset, torch.tensor(real_target).long())
+
+            # Extract performance results
+            train_loss = history.history['loss']
+            train_accuracy = history.history['accuracy']
+            val_loss = history.history['val_loss']
+            val_accuracy = history.history['val_accuracy']
+
+            # Print or visualize the results
+            print("Training Loss:", train_loss)
+            print("Training Accuracy:", train_accuracy)
+            print("Validation Loss:", val_loss)
+            print("Validation Accuracy:", val_accuracy)
 
 
 if __name__ == '__main__':
