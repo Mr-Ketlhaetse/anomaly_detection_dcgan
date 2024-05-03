@@ -12,7 +12,7 @@ class Parameters:
     latent_dim = 100
     img_channels = 3
     img_size = 64
-    dcgan_epochs = 5
+    dcgan_epochs = 50
     dcgan_batch_size = 64
 
     # GridSearchCv hyperparameters
