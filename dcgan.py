@@ -78,7 +78,7 @@ class DCGAN:
     def train(self, num_epochs=prm.dcgan_epochs):
 
         dataset = self.dataset
-        dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=2)
+        dataloader = DataLoader(dataset, batch_size=prm.dcgan_batch_size, shuffle=True, num_workers=prm.dcgan_workers)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

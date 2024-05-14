@@ -4,6 +4,7 @@ import random
 
 import torch.nn as nn
 import pandas as pd
+from config import Parameters as prm
 
 
 class CNNTransferLearning(BaseEstimator):
@@ -115,7 +116,7 @@ class CNNTransferLearning(BaseEstimator):
 
         return probabilities
 
-    def train(self, X, num_epochs=10, batch_size=32, learning_rate=None):
+    def train(self, X, num_epochs=prm.cnn_epochs, batch_size=prm.cnn_batch_size, learning_rate=None):
         # Ensure that X is a list of torch tensors
         X = [x.to(dtype=torch.float32) for x in X]
 

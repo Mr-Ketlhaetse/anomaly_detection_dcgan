@@ -13,8 +13,13 @@ class Parameters:
     img_channels = 3
     img_size = 64
     dcgan_epochs = 5
-    dcgan_batch_size = 64
+    dcgan_batch_size = 16
+    dcgan_workers = 1
 
     # GridSearchCv hyperparameters
     CV = 2
     cross_validate = False
+
+    # CNN hyperparameters
+    cnn_batch_size = 16
+    cnn_epochs = 10
