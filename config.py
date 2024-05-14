@@ -1,8 +1,8 @@
 class Parameters:
     # CTGAN hyperparameters
     CTGAN_EPOCHS = 3
-    CTGAN_SAMPLES = 1000
-    ORIGINAL_SAMPLES = 10000
+    CTGAN_SAMPLES = 10
+    ORIGINAL_SAMPLES = 1000
     SYN_RATIO = 1.0
     SAMPLED_DATA_FILE = f"{SYN_RATIO}_sampled.csv"
 
@@ -12,7 +12,7 @@ class Parameters:
     latent_dim = 100
     img_channels = 3
     img_size = 64
-    dcgan_epochs = 50
+    dcgan_epochs = 5
     dcgan_batch_size = 64
 
     # GridSearchCv hyperparameters

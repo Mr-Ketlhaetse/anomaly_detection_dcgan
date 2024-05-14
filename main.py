@@ -98,15 +98,19 @@ def main():
     error = 'abs'
     result_dir = 'Results/Table_To_Image_Conversion/Test_1'
     os.makedirs(name=result_dir, exist_ok=True)  # Create the result directory if it doesn't exist
-
+    
     save_image_size = 64  # Define the variable "save_image_size"
     max_step = 30000  # Define the variable "max_step"
     val_step = 300  # Define the variable "val_step"
 
+    print("generate image samples")
     generated_images = table_to_image(real_data, [num_row, num_col], fea_dist_method, image_dist_method,
                                       save_image_size,
                                       max_step, val_step, result_dir, error)
+    # os.close(result_dir)
 
+    
+    print("Load images from file")
     # Load image dataset
     folder_path = 'Results/Table_To_Image_Conversion/Test_1/data'
     transform = transforms.Compose([
@@ -114,7 +118,9 @@ def main():
         transforms.ToTensor(),
     ])
     image_dataset = ImageDatasetLoader(folder_path, image_type='png', transform=transform)
+    # os.close(folder_path)
 
+    print("Train the DCGAN")
     # Train DCGAN model
     if prm.dcgan_train:
         dcgan_model = DCGAN(image_dataset, prm.latent_dim, prm.img_channels, prm.img_size)
@@ -222,19 +228,19 @@ def main():
         # writer.close()
 
     else:
-        history = cnn_model.fit(image_dataset, torch.tensor(real_target).long())
+        cnn_model, history = cnn_model.fit(image_dataset, torch.tensor(real_target).long())
 
         # Extract performance results
-        train_loss = history.history['loss']
-        train_accuracy = history.history['accuracy']
-        val_loss = history.history['val_loss']
-        val_accuracy = history.history['val_accuracy']
+        train_loss = history['loss']
+        train_accuracy = history['accuracy']
+        # val_loss = history['val_loss']
+        # val_accuracy = history['val_accuracy']
 
         # Print or visualize the results
         print("Training Loss:", train_loss)
         print("Training Accuracy:", train_accuracy)
-        print("Validation Loss:", val_loss)
-        print("Validation Accuracy:", val_accuracy)
+        # print("Validation Loss:", val_loss)
+        # print("Validation Accuracy:", val_accuracy)
 
 
 if __name__ == '__main__':

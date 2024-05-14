@@ -18,7 +18,7 @@ class CNNTransferLearning(BaseEstimator):
 
         # Additional layers for classification
         self.classifier = nn.Sequential(
-            nn.Linear(175, 256),
+            nn.Linear(180, 256),
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(256, num_classes),
@@ -36,7 +36,6 @@ class CNNTransferLearning(BaseEstimator):
     def forward(self, x):
         x = self.dcgan_discriminator(x)
         x = x.view(x.size(0), -1)
-        x = self.linear_layer(x)  # Add a linear layer to match the dimensions
         x = self.classifier(x)
         return x
 
@@ -76,7 +75,12 @@ class CNNTransferLearning(BaseEstimator):
             loss.backward()
             optimizer.step()
 
-        return self
+        history = {
+            'loss': loss.item(),
+            'accuracy': (torch.argmax(outputs, dim=1) == y_tensor).sum().item() / len(y_tensor)
+            }
+
+        return self, history
 
     def predict(self, X):
         # Convert X to torch tensor
