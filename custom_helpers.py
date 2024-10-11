@@ -1,7 +1,11 @@
-import os
-from PIL import Image
-from torchvision import transforms
-from torch.utils.data import Dataset
+try:
+    import os
+    from PIL import Image
+    from torchvision import transforms
+    from torch.utils.data import Dataset
+except ImportError as e:
+    print(f"An error occurred while importing modules: {e}")
+    raise
 
 
 class ImageDatasetLoader(Dataset):

@@ -1,10 +1,13 @@
-from sklearn.base import BaseEstimator
-import torch
-import random
-
-import torch.nn as nn
-import pandas as pd
-from config import Parameters as prm
+try:
+    from sklearn.base import BaseEstimator
+    import torch
+    import random
+    import torch.nn as nn
+    import pandas as pd
+    from config import Parameters as prm
+except ImportError as e:
+    print(f"Import error: {e}")
+    raise
 
 
 class CNNTransferLearning(BaseEstimator):

@@ -1,12 +1,16 @@
-import torch
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-import os
-import torch.nn as nn
-import torch.optim as optim
-import torchvision.utils as vutils
-import matplotlib.pyplot as plt
-from config import Parameters as prm
+try:
+    import torch
+    from torchvision import datasets, transforms
+    from torch.utils.data import DataLoader
+    import os
+    import torch.nn as nn
+    import torch.optim as optim
+    import torchvision.utils as vutils
+    import matplotlib.pyplot as plt
+    from config import Parameters as prm
+except ImportError as e:
+    print(f"Error importing modules: {e}")
+    raise
 
 
 class DCGAN:
@@ -131,6 +135,11 @@ class DCGAN:
                           % (epoch, num_epochs, i, len(dataloader),
                              errD_real.item() + errD_fake.item(), errG.item()))
 
+                    # Append the printed values to a CSV file
+                    with open('training_log.csv', 'a') as f:
+                        f.write('%d,%d,%d,%d,%.4f,%.4f\n' % (epoch, num_epochs, i, len(dataloader),
+                                                             errD_real.item() + errD_fake.item(), errG.item()))
+
                     # Save generated images for every 10 epochs
                     image_dir = "./sampled/dcgan_images"
                     os.makedirs(image_dir, exist_ok=True)
@@ -155,18 +164,3 @@ class DCGAN:
         plt.savefig('./plots/dcgan/loss_graph.png')
         plt.clf()
         pass
-
-# if __name__ == '__main__':
-
-#     # Example usage:
-#     # my_dataset = datasets.CIFAR10  # Set your dataset class dynamically
-#     transform = transforms.Compose([
-#         transforms.Resize(79),
-#         transforms.ToTensor(),
-#         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-#     ])
-#     my_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-#     dataloader = DataLoader(my_dataset, batch_size=64, shuffle=True, num_workers=2)
-#     dcgan = DCGAN(dataset=dataloader)
-#     dcgan.train()
-#     pass
