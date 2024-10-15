@@ -14,7 +14,8 @@ try:
     from torch.utils.data.dataset import Subset
     from sklearn.model_selection import GridSearchCV, train_test_split
     from sklearn.metrics import make_scorer, precision_score, recall_score, f1_score, accuracy_score
-    from sklearn.metrics import confusion_matrix
+    from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+    import matplotlib.pyplot as plt 
     import matplotlib.pyplot as plt
     from torch.utils.tensorboard import SummaryWriter
     from sklearn.model_selection import learning_curve
@@ -205,6 +206,18 @@ def main():
                 # Print best parameters and best score
                 print("Best Parameters:", grid_search.best_params_)
                 print("Best Score:", grid_search.best_score_)
+
+                best_model = grid_search.best_estimator_
+                y_pred = best_model.predict(image_dataset)  # Replace `X_test` with your actual test data
+                y_true = real_target  # Replace `y_test` with your actual test labels
+
+                cm = confusion_matrix(y_true, y_pred)   # Compute confusion matrix
+
+                disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+                disp.plot(cmap=plt.cm.Blues)
+                plt.title('Confusion Matrix')
+                plt.savefig(f"plots/{prm.SYN_RATIO}/{prm.dcgan_epochs}/confusion_matrix.png")
+                plt.show()
 
                 # Create a SummaryWriter object
                 writer = SummaryWriter()
