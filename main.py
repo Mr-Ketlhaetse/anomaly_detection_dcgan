@@ -71,7 +71,7 @@ def main():
     try:
         with open(LOCAL_FOLDER, 'r') as file:
             print("Loading dataset")
-            original_data = pd.read_csv(LOCAL_FOLDER)
+            original_data = pd.read_csv(LOCAL_FOLDER).iloc[:prm.ORIGINAL_SAMPLES]
             print("data loading done")
             # Process the data as needed
     except OSError as e:

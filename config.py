@@ -1,7 +1,7 @@
 class Parameters:
     # CTGAN hyperparameters
-    CTGAN_EPOCHS = 3
-    CTGAN_SAMPLES = 100000
+    CTGAN_EPOCHS = 1
+    CTGAN_SAMPLES = 1000
     ORIGINAL_SAMPLES = 1000
     SYN_RATIO = 0.2
     SAMPLED_DATA_FILE = f"{SYN_RATIO}_sampled.csv"
@@ -22,4 +22,4 @@ class Parameters:
 
     # CNN hyperparameters
     cnn_batch_size = 16
-    cnn_epochs = 50
+    cnn_epochs = 10
