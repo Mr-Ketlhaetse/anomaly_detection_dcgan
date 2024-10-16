@@ -143,8 +143,14 @@ class DCGAN:
                     # Save generated images for every 10 epochs
                     image_dir = "./sampled/dcgan_images"
                     os.makedirs(image_dir, exist_ok=True)
+                    # Log the image directory
+                    print(f"Image directory: {image_dir}")
                     fake = self.netG(torch.randn(64, self.nz, 1, 1, device=device))
-                    vutils.save_image(fake.detach(), '{}/fake_samples_epoch_{}.png'.format(image_dir, epoch + 1),
+                    file_path = '{}/fake_samples_epoch_{}.png'.format(image_dir, epoch + 1)
+
+                    # Log the file path
+                    print(f"Saving image to: {file_path}")
+                    vutils.save_image(fake.detach(), file_path,
                                       normalize=True)
 
         # Save the generator model

@@ -101,7 +101,7 @@ def main():
     increment = 0.2  # Change this value to your desired increment
 
     # Iterate based on a range with the specified increment
-    for i in [0.2, 0.4, 0.6, 0.8, 1.0]:
+    for i in [0.8, 1.0]:
        
         prm.SYN_RATIO = i
         # Combine real and synthetic data
