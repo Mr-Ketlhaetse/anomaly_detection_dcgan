@@ -13,8 +13,8 @@ try:
     from torch.utils.data import DataLoader, Dataset
     from torch.utils.data.dataset import Subset
     from sklearn.model_selection import GridSearchCV, train_test_split
-    from sklearn.metrics import make_scorer, precision_score, recall_score, f1_score, accuracy_score
-    from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+    from sklearn.metrics import make_scorer, precision_score, recall_score, f1_score, accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+    from sklearn.preprocessing import Binarizer
     import matplotlib.pyplot as plt 
     import matplotlib.pyplot as plt
     from torch.utils.tensorboard import SummaryWriter
@@ -189,16 +189,17 @@ def main():
                 scoring = {
                     'precision': make_scorer(precision_score, average='macro', zero_division=1),
                     'recall': make_scorer(recall_score, average='macro'),
-                    'f1_score': make_scorer(f1_score, average='macro'),
+                    'f1': make_scorer(f1_score, average='macro'),
                     'accuracy': make_scorer(accuracy_score),
-                    'false_alarm_rate': far_scorer,
-                    'false_negative_rate': fnr_scorer,
-                    'true_negative_rate': tnr_scorer
+                    # 'roc_uac_ovr': 'roc_auc_ovr',
+                    # 'far': far_scorer,
+                    # 'fnr': fnr_scorer,
+                    # 'tnr': tnr_scorer
                 }
 
                 # Create GridSearchCV object
                 print("GridSearchCv instantiation and fitting")
-                grid_search = GridSearchCV(cnn_model, param_grid, cv=prm.CV, scoring=scoring, refit='f1_score', error_score='raise')
+                grid_search = GridSearchCV(cnn_model, param_grid, cv=prm.CV, scoring=scoring, refit='f1', error_score='raise')
 
                 # Fit GridSearchCV object to the data
                 grid_search.fit(image_dataset, torch.tensor(real_target).long())
@@ -207,23 +208,43 @@ def main():
                 print("Best Parameters:", grid_search.best_params_)
                 print("Best Score:", grid_search.best_score_)
 
-                best_model = grid_search.best_estimator_
-                y_pred = best_model.predict(image_dataset)  # Replace `X_test` with your actual test data
-                y_true = real_target  # Replace `y_test` with your actual test labels
+                # best_model = grid_search.best_estimator_
+                # y_pred = best_model.predict(image_dataset)  # Replace `X_test` with your actual test data
+                # y_true = real_target  # Replace `y_test` with your actual test labels
 
-                cm = confusion_matrix(y_true, y_pred)   # Compute confusion matrix
+                # if y_pred.dtype.kind in 'fc':  # 'f' for float, 'c' for complex
+                #     # Binarize y_pred (example threshold: 0.5)
+                #     binarizer = Binarizer(threshold=0.5)
+                #     y_pred = binarizer.fit_transform(y_pred.reshape(-1, 1)).ravel()
 
-                disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-                disp.plot(cmap=plt.cm.Blues)
-                plt.title('Confusion Matrix')
-                plt.savefig(f"plots/{prm.SYN_RATIO}/{prm.dcgan_epochs}/confusion_matrix.png")
-                plt.show()
+                # cm = confusion_matrix(y_true, y_pred)   # Compute confusion matrix
+
+                # disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+                # disp.plot(cmap=plt.cm.Blues)
+                # plt.title('Confusion Matrix')
+                # plt.savefig(f"plots/{prm.SYN_RATIO}/{prm.dcgan_epochs}/confusion_matrix.png")
+                # plt.show()
 
                 # Create a SummaryWriter object
                 writer = SummaryWriter()
 
                 # Preview scorer names
                 print("GridSearchCV results keys:", grid_search.cv_results_.keys())
+                # Define the directory path
+                grid_directory = f"plots/{prm.SYN_RATIO}/{prm.dcgan_epochs}"
+
+                # Create the directory if doesn't exist
+                os.makedirs(grid_directory, exist_ok=True)
+                # Open a file to write the GridSearchCV results
+                with open(f"{grid_directory}/grid_search_results.csv", "w") as file:
+                    # Preview scorer names
+                    print("GridSearchCV results keys:", grid_search.cv_results_.keys())
+                    for key, value in grid_search.cv_results_.items():
+                        # Write the results to the file
+                        file.write(f"{key}, {value}\n")
+                        # Log the results to TensorBoard
+                        writer.add_text(key, str(value))
+
 
                 # Print scores for all metrics
                 for scorer_name in scoring.keys():
@@ -234,13 +255,16 @@ def main():
                     plt.title(f"{scorer_name.capitalize()} Score vs Parameter Combination")
                     # Set y-axis limits here
                     plt.ylim([0, 1])  # Adjust as needed
-                    plt.savefig(f"plots/{prm.SYN_RATIO}/{prm.dcgan_epochs}/{scorer_name}.png")
+
+                    directory = f"plots/{prm.SYN_RATIO}/{prm.dcgan_epochs}"
+                    os.makedirs(directory, exist_ok=True)
+                    plt.savefig(f"{directory}/{scorer_name}.png")
                     plt.clf()
 
                     # Generate learning curve
                     print("Generating learning curve")
                     train_sizes, train_scores, test_scores = learning_curve(
-                        grid_search.best_estimator_, image_dataset, torch.tensor(real_target).long(), cv=CV, scoring=scorer_name,
+                        grid_search.best_estimator_, image_dataset, torch.tensor(real_target).long(), cv=prm.CV, scoring=scorer_name,
                         n_jobs=1)
 
                     train_scores_mean = np.mean(train_scores, axis=1)

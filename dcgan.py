@@ -150,6 +150,9 @@ class DCGAN:
         # Save the generator model
         torch.save(self.netD.state_dict(), 'dcgan_discriminator_weights.pth')
 
+        # Save the generator model
+        # torch.save(self.netG.state_dict(), 'dcgan_discriminator_weights.pth')
+
         # plot the loss graph for the generator and discriminator
         os.makedirs('./plots/dcgan', exist_ok=True)
         plt.figure(figsize=(5, 5))
@@ -160,7 +163,7 @@ class DCGAN:
         plt.ylabel("Loss")
         plt.legend()
         # Set y-axis limits here
-        plt.ylim([-1, 2])  # Adjust as needed
+        plt.ylim([0, 1.5])  # Adjust as needed
         plt.savefig('./plots/dcgan/loss_graph.png')
         plt.clf()
         pass
