@@ -188,8 +188,8 @@ def main():
             if prm.cross_validate:
                 scoring = {
                     'precision': make_scorer(precision_score, average='macro', zero_division=1),
-                    'recall': make_scorer(recall_score, average='macro'),
-                    'f1': make_scorer(f1_score, average='macro'),
+                    'recall': make_scorer(recall_score, average='macro', zero_division=0),
+                    'f1': make_scorer(f1_score, average='macro',zero_division=0),
                     'accuracy': make_scorer(accuracy_score),
                     # 'roc_uac_ovr': 'roc_auc_ovr',
                     # 'far': far_scorer,

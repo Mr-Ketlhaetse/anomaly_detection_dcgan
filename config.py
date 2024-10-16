@@ -1,8 +1,8 @@
 class Parameters:
     # CTGAN hyperparameters
     CTGAN_EPOCHS = 1
-    CTGAN_SAMPLES = 10000
-    ORIGINAL_SAMPLES = 20000
+    CTGAN_SAMPLES = 1000
+    ORIGINAL_SAMPLES = 10000
     SYN_RATIO = 0.2
     SAMPLED_DATA_FILE = f"{SYN_RATIO}_sampled.csv"
 
